@@ -39,7 +39,434 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState } = React;
+        const { useState, useMemo } = React;
+
+        const translations = {
+            pl: {
+                title: "Kompendium Emocji",
+                stimulus: "Bodziec (Świat)",
+                impulse: "Impuls (Ciało)",
+                emotion: "Emocja",
+                action: "Działanie (Instynkt)",
+                bioGoal: "Cel Biologiczny",
+                energyScale: "Skala Energii (Intensywność)",
+                affect: "Afekt",
+                signal: "Sygnał",
+                vector: "Wektor",
+                function: "Funkcja",
+                mechanism: "Mechanizm Powstawania (Teoria Plutchika & Jamesa-Langego)",
+                neuroception: "*Neurocepcja: Ciało reaguje na bodziec (impuls) szybciej niż umysł nada mu nazwę (emocja).",
+                motorics: "Motoryka",
+                movementVector: "Wektor ruchu",
+                bodyDictionary: "Słownik Ciała (Sygnały Somatyczne)",
+                bodyDictDesc: "Zewnętrzne i wewnętrzne objawy fizjologiczne. Skorzystaj z nich, by zbudować wiarygodną reakcję postaci.",
+                actorPerspective: "Perspektywa Aktora",
+                bodySignal: "Sygnał z ciała (Co czuję?)",
+                scenicGoal: "Cel sceniczny (Zadanie)",
+                remember: "Pamiętaj: Ciało nie kłamie. Zagraj impuls (napięcie/rozluźnienie), a emocja pojawi się sama.",
+                back: "Wróć",
+                quote: "\"Emocje nie są stanami ducha. Są ewolucyjnymi programami przetrwania.\"",
+                quoteAuthor: "- Robert Plutchik -",
+                whyTool: "Dlaczego to narzędzie dla aktora?",
+                whyToolDesc: "Aktorstwo to działanie. Plutchik udowadnia, że każda emocja ma <strong>cel biologiczny</strong> (np. zniszczyć przeszkodę, uciec przed zagrożeniem). Zamiast \"grać nastrój\", użyj tego kompendium, aby zrozumieć <strong>zadanie (impuls)</strong>, jakie Twoja postać musi wykonać instynktownie.",
+                survivalTasks: "8 Podstawowych Zadań Przetrwania",
+                footer: "© 2025 Oskar Hamerski",
+
+                // Funkcje dla stopki
+                protection: "OCHRONA",
+                destruction: "DESTRUKCJA",
+                courtship: "ZALOTY",
+                reintegration: "REINTEGRACJA",
+                intimacy: "INTYMNOŚĆ",
+                rejection: "ODRZUCENIE",
+                exploration: "EKSPLORACJA",
+                orientation: "ORIENTACJA"
+            },
+            en: {
+                title: "Compendium of Emotions",
+                stimulus: "Stimulus (World)",
+                impulse: "Impulse (Body)",
+                emotion: "Emotion",
+                action: "Action (Instinct)",
+                bioGoal: "Biological Goal",
+                energyScale: "Energy Scale (Intensity)",
+                affect: "Affect",
+                signal: "Signal",
+                vector: "Vector",
+                function: "Function",
+                mechanism: "Mechanism of Origin (Plutchik & James-Lange Theory)",
+                neuroception: "*Neuroception: The body reacts to a stimulus (impulse) faster than the mind names it (emotion).",
+                motorics: "Motorics",
+                movementVector: "Movement Vector",
+                bodyDictionary: "Body Dictionary (Somatic Signals)",
+                bodyDictDesc: "External and internal physiological symptoms. Use them to build a credible character reaction.",
+                actorPerspective: "Actor's Perspective",
+                bodySignal: "Body Signal (What do I feel?)",
+                scenicGoal: "Scenic Goal (Task)",
+                remember: "Remember: The body doesn't lie. Play the impulse (tension/relaxation), and the emotion will appear by itself.",
+                back: "Back",
+                quote: "\"Emotions are not states of mind. They are evolutionary survival programs.\"",
+                quoteAuthor: "- Robert Plutchik -",
+                whyTool: "Why is this a tool for actors?",
+                whyToolDesc: "Acting is doing. Plutchik proves that every emotion has a <strong>biological goal</strong> (e.g., destroy an obstacle, escape a threat). Instead of \"playing a mood\", use this compendium to understand the <strong>task (impulse)</strong> that your character must perform instinctively.",
+                survivalTasks: "8 Basic Survival Tasks",
+                footer: "© 2025 Oskar Hamerski",
+
+                protection: "PROTECTION",
+                destruction: "DESTRUCTION",
+                courtship: "COURTSHIP",
+                reintegration: "REINTEGRATION",
+                intimacy: "INTIMACY",
+                rejection: "REJECTION",
+                exploration: "EXPLORATION",
+                orientation: "ORIENTATION"
+            }
+        };
+
+        const emotionsBase = [
+            { id: 'fear', color: 'bg-emerald-700', lightColor: 'bg-emerald-900/30', textColor: 'text-emerald-400', icon: 'alertTriangle' },
+            { id: 'anger', color: 'bg-red-600', lightColor: 'bg-red-900/30', textColor: 'text-red-500', icon: 'flame' },
+            { id: 'joy', color: 'bg-yellow-500', lightColor: 'bg-yellow-900/30', textColor: 'text-yellow-400', icon: 'zap' },
+            { id: 'sadness', color: 'bg-blue-600', lightColor: 'bg-blue-900/30', textColor: 'text-blue-400', icon: 'anchor' },
+            { id: 'trust', color: 'bg-lime-500', lightColor: 'bg-lime-900/30', textColor: 'text-lime-400', icon: 'userCheck' },
+            { id: 'disgust', color: 'bg-purple-600', lightColor: 'bg-purple-900/30', textColor: 'text-purple-400', icon: 'minusCircle' },
+            { id: 'anticipation', color: 'bg-orange-500', lightColor: 'bg-orange-900/30', textColor: 'text-orange-400', icon: 'eye' },
+            { id: 'surprise', color: 'bg-cyan-500', lightColor: 'bg-cyan-900/30', textColor: 'text-cyan-400', icon: 'maximize2' }
+        ];
+
+        const emotionsText = {
+            pl: {
+                fear: {
+                    name: 'STRACH',
+                    stimulus: 'ZAGROŻENIE',
+                    impulse: 'Napięcie / Alarm',
+                    behavior: 'UCIECZKA / UNIK',
+                    function: 'OCHRONA',
+                    intensity: { low: 'Niepokój', medium: 'Strach', high: 'Przerażenie' },
+                    vector: 'DO TYŁU / KURCZENIE SIĘ',
+                    desc: 'Ciało rozpoznaje siłę wyższą od siebie. Priorytetem jest zachowanie integralności poprzez wycofanie.',
+                    signals: [
+                        'Przyspieszone bicie serca (kołatanie)',
+                        'Płytki, szybki oddech lub wstrzymywanie powietrza',
+                        'Bladość twarzy, odpływ krwi z kończyn',
+                        'Zimny pot (szczególnie na czole i dłoniach)',
+                        'Drżenie rąk, kolan lub warg',
+                        'Szeroko otwarte oczy, rozszerzone źrenice',
+                        'Suchość w ustach (częste przełykanie śliny)',
+                        'Odruchowe kulenie się (osłanianie szyi/brzucha)'
+                    ]
+                },
+                anger: {
+                    name: 'GNIEW',
+                    stimulus: 'PRZESZKODA',
+                    impulse: 'Gorąco / Adrenalina',
+                    behavior: 'ATAK / PRZEBICIE',
+                    function: 'DESTRUKCJA',
+                    intensity: { low: 'Irytacja', medium: 'Gniew', high: 'Wściekłość' },
+                    vector: 'DO PRZODU / TARCIE',
+                    desc: 'Organizm rozpoznaje przeszkodę, którą może pokonać. Mobilizacja energii do walki.',
+                    signals: [
+                        'Zaciśnięte szczęki, zgrzytanie zębami',
+                        'Czerwienienie się twarzy i szyi',
+                        'Rozdęte nozdrza',
+                        'Zaciśnięte pięści (bielenie knykci)',
+                        'Wysunięcie żuchwy lub głowy do przodu',
+                        'Napięcie mięśni ramion i karku',
+                        'Głośniejszy, szorstki ton głosu',
+                        'Intensywny kontakt wzrokowy (tunelowe widzenie)'
+                    ]
+                },
+                joy: {
+                    name: 'RADOŚĆ',
+                    stimulus: 'SUKCES / ZASOBY',
+                    impulse: 'Ekspansja / Energia',
+                    behavior: 'POPISYWANIE SIĘ',
+                    function: 'WITALNOŚĆ / ZALOTY',
+                    intensity: { low: 'Pogoda ducha', medium: 'Radość', high: 'Ekstaza' },
+                    vector: 'W GÓRĘ / NA ZEWNĄTRZ',
+                    desc: 'Sygnał bezpieczeństwa i siły ("Mam zasoby!"). Napędza taniec godowy, flirt i przyciąganie uwagi.',
+                    signals: [
+                        'Uniesione kąciki ust (uśmiech angażujący oczy)',
+                        'Błyszczące, lekko wilgotne oczy',
+                        'Rozluźniona, otwarta postawa ciała',
+                        'Podniesiona głowa i klatka piersiowa',
+                        'Energiczne, płynne gesty',
+                        'Częsty śmiech, chichot',
+                        'Eksponowanie szyi i nadgarstków',
+                        'Sprężysty krok, "lekkość" ciała'
+                    ]
+                },
+                sadness: {
+                    name: 'SMUTEK',
+                    stimulus: 'UTRATA',
+                    impulse: 'Ciężar / Zapadanie',
+                    behavior: 'PŁACZ / BEZRUCH',
+                    function: 'REINTEGRACJA',
+                    intensity: { low: 'Zaduma', medium: 'Smutek', high: 'Rozpacz' },
+                    vector: 'W DÓŁ / DO ŚRODKA',
+                    desc: 'Sygnał dla grupy o potrzebie wsparcia ("Pomóż mi"). Oszczędzanie energii w obliczu nieodwracalnej straty.',
+                    signals: [
+                        'Opadające kąciki ust i powiek',
+                        'Wzrok wbity w ziemię lub "nieobecny"',
+                        'Zgarbiona sylwetka, zapadnięta klatka piersiowa',
+                        'Powolne, ociężałe ruchy (letarg)',
+                        'Cichy, monotonny lub łamiący się głos',
+                        'Łzy, szklące się oczy',
+                        'Zasłanianie twarzy dłońmi',
+                        'Apatia, brak reakcji na bodźce zewnętrzne'
+                    ]
+                },
+                trust: {
+                    name: 'AKCEPTACJA',
+                    stimulus: 'PRZYJACIEL',
+                    impulse: 'Rozluźnienie / Ciepło',
+                    behavior: 'OTWARCIE GRANIC',
+                    function: 'WIĘŹ / INTYMNOŚĆ',
+                    intensity: { low: 'Akceptacja', medium: 'Zaufanie', high: 'Oddanie' },
+                    vector: 'DO SIEBIE / WCHŁANIANIE',
+                    desc: 'Decyzja organizmu o wpuszczeniu kogoś do strefy intymnej. Niezbędna do aktu seksualnego i karmienia.',
+                    signals: [
+                        'Stały, łagodny kontakt wzrokowy',
+                        'Odsłonięcie wrażliwych części ciała (szyja, brzuch)',
+                        'Otwarte dłonie (pokazywanie wnętrza)',
+                        'Pochylenie ciała w stronę rozmówcy',
+                        'Synchronizacja ruchów (efekt lustra)',
+                        'Rozluźnione mięśnie twarzy (brak napięcia)',
+                        'Spokojny, miarowy oddech',
+                        'Ciepły, kojący ton głosu'
+                    ]
+                },
+                disgust: {
+                    name: 'WSTRĘT',
+                    stimulus: 'TOKSYNA',
+                    impulse: 'Mdłości / Skurcz',
+                    behavior: 'WYPYCHANIE / PLUCIE',
+                    function: 'ODRZUCENIE',
+                    intensity: { low: 'Niechęć', medium: 'Wstręt', high: 'Odraza' },
+                    vector: 'OD SIEBIE / BLOKADA',
+                    desc: 'Ochrona organizmu przed zatruciem fizycznym (jedzenie) lub moralnym (zachowanie).',
+                    signals: [
+                        'Marszczenie nosa',
+                        'Uniesienie górnej wargi (grymas)',
+                        'Mrużenie oczu (ograniczenie pola widzenia)',
+                        'Odwracanie głowy od źródła bodźca',
+                        'Zasłanianie ust lub nosa dłonią',
+                        'Odruch wymiotny, przełykanie śliny',
+                        'Cofanie tułowia (odchylenie w tył)',
+                        'Zaciskanie ust (blokada przed wniknięciem)'
+                    ]
+                },
+                anticipation: {
+                    name: 'OCZEKIWANIE',
+                    stimulus: 'NIEZNANE TERYTORIUM',
+                    impulse: 'Wyostrzenie zmysłów',
+                    behavior: 'SKANOWANIE / TROPIENIE',
+                    function: 'EKSPLORACJA',
+                    intensity: { low: 'Ciekawość', medium: 'Oczekiwanie', high: 'Czujność' },
+                    vector: 'DO PRZODU (Głowa)',
+                    desc: 'Aktywne poszukiwanie informacji. Przygotowanie ciała na to, co dopiero nadejdzie.',
+                    signals: [
+                        'Rozszerzone źrenice (chęć chłonięcia informacji)',
+                        'Lekkie napięcie mięśni (gotowość do startu)',
+                        'Oblizywanie ust (z niepokoju lub ekscytacji)',
+                        'Wiercenie się, tupanie, bębnienie palcami',
+                        'Wpatrywanie się w jeden punkt (np. drzwi, telefon)',
+                        'Pochylenie głowy lub tułowia do przodu',
+                        'Wstrzymywanie oddechu w kluczowych momentach',
+                        'Skanowanie otoczenia wzrokiem'
+                    ]
+                },
+                surprise: {
+                    name: 'ZASKOCZENIE',
+                    stimulus: 'NAGŁY OBIEKT',
+                    impulse: 'Wdech / Zatrzymanie',
+                    behavior: 'STOP / RESET',
+                    function: 'ORIENTACJA',
+                    intensity: { low: 'Roztargnienie', medium: 'Zaskoczenie', high: 'Szok' },
+                    vector: 'STOP / ROZSZERZENIE',
+                    desc: 'Nagły reset uwagi ("Biała karta"). Przerwanie działania, by ocenić nowy bodziec.',
+                    signals: [
+                        'Gwałtowne otwarcie ust (opadnięcie żuchwy)',
+                        'Wysoko uniesione brwi (zmarszczki na czole)',
+                        'Szeroko otwarte oczy (widoczne białka)',
+                        'Nagły, krótki wdech (gasp)',
+                        'Chwilowe zamarcie w bezruchu (reakcja "freeze")',
+                        'Odruchowe cofnięcie się (krok w tył)',
+                        'Podniesienie dłoni do ust lub klatki piersiowej',
+                        'Rozluźnienie mięśni po chwili (jeśli brak zagrożenia)'
+                    ]
+                }
+            },
+            en: {
+                fear: {
+                    name: 'FEAR',
+                    stimulus: 'THREAT',
+                    impulse: 'Tension / Alarm',
+                    behavior: 'ESCAPE / AVOIDANCE',
+                    function: 'PROTECTION',
+                    intensity: { low: 'Anxiety', medium: 'Fear', high: 'Terror' },
+                    vector: 'BACKWARD / CONTRACTION',
+                    desc: 'The body recognizes a force greater than itself. Priority is to preserve integrity by withdrawing.',
+                    signals: [
+                        'Accelerated heartbeat (palpitations)',
+                        'Shallow, rapid breathing or holding breath',
+                        'Pale face, blood draining from limbs',
+                        'Cold sweat (especially on forehead and palms)',
+                        'Trembling hands, knees or lips',
+                        'Wide open eyes, dilated pupils',
+                        'Dry mouth (frequent swallowing)',
+                        'Reflexive crouching (shielding neck/belly)'
+                    ]
+                },
+                anger: {
+                    name: 'ANGER',
+                    stimulus: 'OBSTACLE',
+                    impulse: 'Heat / Adrenaline',
+                    behavior: 'ATTACK / BREAKTHROUGH',
+                    function: 'DESTRUCTION',
+                    intensity: { low: 'Annoyance', medium: 'Anger', high: 'Rage' },
+                    vector: 'FORWARD / FRICTION',
+                    desc: 'The organism recognizes an obstacle it can overcome. Mobilization of energy to fight.',
+                    signals: [
+                        'Clenched jaws, grinding teeth',
+                        'Reddening of face and neck',
+                        'Flaring nostrils',
+                        'Clenched fists (whitening knuckles)',
+                        'Jutting jaw or head forward',
+                        'Tension in shoulder and neck muscles',
+                        'Louder, harsh voice tone',
+                        'Intense eye contact (tunnel vision)'
+                    ]
+                },
+                joy: {
+                    name: 'JOY',
+                    stimulus: 'SUCCESS / RESOURCES',
+                    impulse: 'Expansion / Energy',
+                    behavior: 'SHOWING OFF',
+                    function: 'VITALITY / COURTSHIP',
+                    intensity: { low: 'Serenity', medium: 'Joy', high: 'Ecstasy' },
+                    vector: 'UPWARD / OUTWARD',
+                    desc: 'Signal of safety and strength ("I have resources!"). Drives mating dance, flirtation, and attracting attention.',
+                    signals: [
+                        'Raised corners of the mouth (smile engaging eyes)',
+                        'Sparkling, slightly moist eyes',
+                        'Relaxed, open body posture',
+                        'Raised head and chest',
+                        'Energetic, fluid gestures',
+                        'Frequent laughter, giggling',
+                        'Exposing neck and wrists',
+                        'Bouncy step, "lightness" of body'
+                    ]
+                },
+                sadness: {
+                    name: 'SADNESS',
+                    stimulus: 'LOSS',
+                    impulse: 'Heaviness / Sinking',
+                    behavior: 'CRYING / STILLNESS',
+                    function: 'REINTEGRATION',
+                    intensity: { low: 'Pensiveness', medium: 'Sadness', high: 'Grief' },
+                    vector: 'DOWNWARD / INWARD',
+                    desc: 'Signal to the group for support ("Help me"). Conserving energy in the face of irreversible loss.',
+                    signals: [
+                        'Drooping corners of mouth and eyelids',
+                        'Gaze fixed on the ground or "absent"',
+                        'Slumped silhouette, sunken chest',
+                        'Slow, heavy movements (lethargy)',
+                        'Quiet, monotone or breaking voice',
+                        'Tears, glassy eyes',
+                        'Covering face with hands',
+                        'Apathy, lack of reaction to external stimuli'
+                    ]
+                },
+                trust: {
+                    name: 'ACCEPTANCE',
+                    stimulus: 'FRIEND',
+                    impulse: 'Relaxation / Warmth',
+                    behavior: 'OPENING BOUNDARIES',
+                    function: 'BONDING / INTIMACY',
+                    intensity: { low: 'Acceptance', medium: 'Trust', high: 'Admiration' },
+                    vector: 'TOWARD SELF / ABSORPTION',
+                    desc: 'Organism\'s decision to let someone into the intimate zone. Essential for sexual act and feeding.',
+                    signals: [
+                        'Steady, gentle eye contact',
+                        'Exposing vulnerable body parts (neck, belly)',
+                        'Open hands (showing palms)',
+                        'Leaning body towards the interlocutor',
+                        'Synchronization of movements (mirror effect)',
+                        'Relaxed facial muscles (no tension)',
+                        'Calm, measured breathing',
+                        'Warm, soothing voice tone'
+                    ]
+                },
+                disgust: {
+                    name: 'DISGUST',
+                    stimulus: 'TOXIN',
+                    impulse: 'Nausea / Contraction',
+                    behavior: 'PUSHING AWAY / SPITTING',
+                    function: 'REJECTION',
+                    intensity: { low: 'Boredom', medium: 'Disgust', high: 'Loathing' },
+                    vector: 'AWAY FROM SELF / BLOCKING',
+                    desc: 'Protection of the organism against physical poisoning (food) or moral poisoning (behavior).',
+                    signals: [
+                        'Wrinkling nose',
+                        'Raising upper lip (sneer)',
+                        'Squinting eyes (limiting field of vision)',
+                        'Turning head away from stimulus source',
+                        'Covering mouth or nose with hand',
+                        'Gag reflex, swallowing saliva',
+                        'Retracting torso (leaning back)',
+                        'Purging lips (blocking entry)'
+                    ]
+                },
+                anticipation: {
+                    name: 'ANTICIPATION',
+                    stimulus: 'UNKNOWN TERRITORY',
+                    impulse: 'Sharpening of senses',
+                    behavior: 'SCANNING / TRACKING',
+                    function: 'EXPLORATION',
+                    intensity: { low: 'Interest', medium: 'Anticipation', high: 'Vigilance' },
+                    vector: 'FORWARD (Head)',
+                    desc: 'Active search for information. Preparing the body for what is yet to come.',
+                    signals: [
+                        'Dilated pupils (desire to absorb information)',
+                        'Slight muscle tension (readiness to start)',
+                        'Licking lips (from anxiety or excitement)',
+                        'Fidgeting, tapping, drumming fingers',
+                        'Staring at one point (e.g., door, phone)',
+                        'Leaning head or torso forward',
+                        'Holding breath at key moments',
+                        'Scanning the environment with eyes'
+                    ]
+                },
+                surprise: {
+                    name: 'SURPRISE',
+                    stimulus: 'SUDDEN OBJECT',
+                    impulse: 'Inhale / Freezing',
+                    behavior: 'STOP / RESET',
+                    function: 'ORIENTATION',
+                    intensity: { low: 'Distraction', medium: 'Surprise', high: 'Amazement' },
+                    vector: 'STOP / EXPANSION',
+                    desc: 'Sudden reset of attention ("Blank slate"). Interrupting action to assess a new stimulus.',
+                    signals: [
+                        'Sudden opening of mouth (jaw drop)',
+                        'High raised eyebrows (wrinkles on forehead)',
+                        'Wide open eyes (visible whites)',
+                        'Sudden, short inhale (gasp)',
+                        'Momentary freezing in stillness ("freeze" reaction)',
+                        'Reflexive stepping back',
+                        'Raising hands to mouth or chest',
+                        'Relaxation of muscles after a moment (if no threat)'
+                    ]
+                }
+            }
+        };
+
+        const getEmotionsData = (lang) => {
+             return emotionsBase.map(item => ({
+                 ...item,
+                 ...emotionsText[lang][item.id]
+             }));
+        };
 
         // --- IKONY ---
         const Icon = ({ name, size = 24, className, ...props }) => {
@@ -70,271 +497,67 @@
             );
         };
 
-        // Baza Danych Emocji
-        const emotionsData = [
-            {
-                id: 'fear',
-                name: 'STRACH',
-                color: 'bg-emerald-700',
-                lightColor: 'bg-emerald-900/30',
-                textColor: 'text-emerald-400',
-                icon: 'alertTriangle',
-                stimulus: 'ZAGROŻENIE',
-                impulse: 'Napięcie / Alarm', 
-                behavior: 'UCIECZKA / UNIK',
-                function: 'OCHRONA',
-                intensity: { low: 'Niepokój', medium: 'Strach', high: 'Przerażenie' },
-                vector: 'DO TYŁU / KURCZENIE SIĘ',
-                desc: 'Ciało rozpoznaje siłę wyższą od siebie. Priorytetem jest zachowanie integralności poprzez wycofanie.',
-                signals: [
-                    'Przyspieszone bicie serca (kołatanie)',
-                    'Płytki, szybki oddech lub wstrzymywanie powietrza',
-                    'Bladość twarzy, odpływ krwi z kończyn',
-                    'Zimny pot (szczególnie na czole i dłoniach)',
-                    'Drżenie rąk, kolan lub warg',
-                    'Szeroko otwarte oczy, rozszerzone źrenice',
-                    'Suchość w ustach (częste przełykanie śliny)',
-                    'Odruchowe kulenie się (osłanianie szyi/brzucha)'
-                ]
-            },
-            {
-                id: 'anger',
-                name: 'GNIEW',
-                color: 'bg-red-600',
-                lightColor: 'bg-red-900/30',
-                textColor: 'text-red-500',
-                icon: 'flame',
-                stimulus: 'PRZESZKODA',
-                impulse: 'Gorąco / Adrenalina',
-                behavior: 'ATAK / PRZEBICIE',
-                function: 'DESTRUKCJA',
-                intensity: { low: 'Irytacja', medium: 'Gniew', high: 'Wściekłość' },
-                vector: 'DO PRZODU / TARCIE',
-                desc: 'Organizm rozpoznaje przeszkodę, którą może pokonać. Mobilizacja energii do walki.',
-                signals: [
-                    'Zaciśnięte szczęki, zgrzytanie zębami',
-                    'Czerwienienie się twarzy i szyi',
-                    'Rozdęte nozdrza',
-                    'Zaciśnięte pięści (bielenie knykci)',
-                    'Wysunięcie żuchwy lub głowy do przodu',
-                    'Napięcie mięśni ramion i karku',
-                    'Głośniejszy, szorstki ton głosu',
-                    'Intensywny kontakt wzrokowy (tunelowe widzenie)'
-                ]
-            },
-            {
-                id: 'joy',
-                name: 'RADOŚĆ',
-                color: 'bg-yellow-500',
-                lightColor: 'bg-yellow-900/30',
-                textColor: 'text-yellow-400',
-                icon: 'zap',
-                stimulus: 'SUKCES / ZASOBY',
-                impulse: 'Ekspansja / Energia',
-                behavior: 'POPISYWANIE SIĘ',
-                function: 'WITALNOŚĆ / ZALOTY',
-                intensity: { low: 'Pogoda ducha', medium: 'Radość', high: 'Ekstaza' },
-                vector: 'W GÓRĘ / NA ZEWNĄTRZ',
-                desc: 'Sygnał bezpieczeństwa i siły ("Mam zasoby!"). Napędza taniec godowy, flirt i przyciąganie uwagi.',
-                signals: [
-                    'Uniesione kąciki ust (uśmiech angażujący oczy)',
-                    'Błyszczące, lekko wilgotne oczy',
-                    'Rozluźniona, otwarta postawa ciała',
-                    'Podniesiona głowa i klatka piersiowa',
-                    'Energiczne, płynne gesty',
-                    'Częsty śmiech, chichot',
-                    'Eksponowanie szyi i nadgarstków',
-                    'Sprężysty krok, "lekkość" ciała'
-                ]
-            },
-            {
-                id: 'sadness',
-                name: 'SMUTEK',
-                color: 'bg-blue-600',
-                lightColor: 'bg-blue-900/30',
-                textColor: 'text-blue-400',
-                icon: 'anchor',
-                stimulus: 'UTRATA',
-                impulse: 'Ciężar / Zapadanie',
-                behavior: 'PŁACZ / BEZRUCH',
-                function: 'REINTEGRACJA',
-                intensity: { low: 'Zaduma', medium: 'Smutek', high: 'Rozpacz' },
-                vector: 'W DÓŁ / DO ŚRODKA',
-                desc: 'Sygnał dla grupy o potrzebie wsparcia ("Pomóż mi"). Oszczędzanie energii w obliczu nieodwracalnej straty.',
-                signals: [
-                    'Opadające kąciki ust i powiek',
-                    'Wzrok wbity w ziemię lub "nieobecny"',
-                    'Zgarbiona sylwetka, zapadnięta klatka piersiowa',
-                    'Powolne, ociężałe ruchy (letarg)',
-                    'Cichy, monotonny lub łamiący się głos',
-                    'Łzy, szklące się oczy',
-                    'Zasłanianie twarzy dłońmi',
-                    'Apatia, brak reakcji na bodźce zewnętrzne'
-                ]
-            },
-            {
-                id: 'trust',
-                name: 'AKCEPTACJA',
-                color: 'bg-lime-500',
-                lightColor: 'bg-lime-900/30',
-                textColor: 'text-lime-400',
-                icon: 'userCheck',
-                stimulus: 'PRZYJACIEL',
-                impulse: 'Rozluźnienie / Ciepło',
-                behavior: 'OTWARCIE GRANIC',
-                function: 'WIĘŹ / INTYMNOŚĆ',
-                intensity: { low: 'Akceptacja', medium: 'Zaufanie', high: 'Oddanie' },
-                vector: 'DO SIEBIE / WCHŁANIANIE',
-                desc: 'Decyzja organizmu o wpuszczeniu kogoś do strefy intymnej. Niezbędna do aktu seksualnego i karmienia.',
-                signals: [
-                    'Stały, łagodny kontakt wzrokowy',
-                    'Odsłonięcie wrażliwych części ciała (szyja, brzuch)',
-                    'Otwarte dłonie (pokazywanie wnętrza)',
-                    'Pochylenie ciała w stronę rozmówcy',
-                    'Synchronizacja ruchów (efekt lustra)',
-                    'Rozluźnione mięśnie twarzy (brak napięcia)',
-                    'Spokojny, miarowy oddech',
-                    'Ciepły, kojący ton głosu'
-                ]
-            },
-            {
-                id: 'disgust',
-                name: 'WSTRĘT',
-                color: 'bg-purple-600',
-                lightColor: 'bg-purple-900/30',
-                textColor: 'text-purple-400',
-                icon: 'minusCircle',
-                stimulus: 'TOKSYNA',
-                impulse: 'Mdłości / Skurcz',
-                behavior: 'WYPYCHANIE / PLUCIE',
-                function: 'ODRZUCENIE',
-                intensity: { low: 'Niechęć', medium: 'Wstręt', high: 'Odraza' },
-                vector: 'OD SIEBIE / BLOKADA',
-                desc: 'Ochrona organizmu przed zatruciem fizycznym (jedzenie) lub moralnym (zachowanie).',
-                signals: [
-                    'Marszczenie nosa',
-                    'Uniesienie górnej wargi (grymas)',
-                    'Mrużenie oczu (ograniczenie pola widzenia)',
-                    'Odwracanie głowy od źródła bodźca',
-                    'Zasłanianie ust lub nosa dłonią',
-                    'Odruch wymiotny, przełykanie śliny',
-                    'Cofanie tułowia (odchylenie w tył)',
-                    'Zaciskanie ust (blokada przed wniknięciem)'
-                ]
-            },
-            {
-                id: 'anticipation',
-                name: 'OCZEKIWANIE',
-                color: 'bg-orange-500',
-                lightColor: 'bg-orange-900/30',
-                textColor: 'text-orange-400',
-                icon: 'eye',
-                stimulus: 'NIEZNANE TERYTORIUM',
-                impulse: 'Wyostrzenie zmysłów',
-                behavior: 'SKANOWANIE / TROPIENIE',
-                function: 'EKSPLORACJA',
-                intensity: { low: 'Ciekawość', medium: 'Oczekiwanie', high: 'Czujność' },
-                vector: 'DO PRZODU (Głowa)',
-                desc: 'Aktywne poszukiwanie informacji. Przygotowanie ciała na to, co dopiero nadejdzie.',
-                signals: [
-                    'Rozszerzone źrenice (chęć chłonięcia informacji)',
-                    'Lekkie napięcie mięśni (gotowość do startu)',
-                    'Oblizywanie ust (z niepokoju lub ekscytacji)',
-                    'Wiercenie się, tupanie, bębnienie palcami',
-                    'Wpatrywanie się w jeden punkt (np. drzwi, telefon)',
-                    'Pochylenie głowy lub tułowia do przodu',
-                    'Wstrzymywanie oddechu w kluczowych momentach',
-                    'Skanowanie otoczenia wzrokiem'
-                ]
-            },
-            {
-                id: 'surprise',
-                name: 'ZASKOCZENIE',
-                color: 'bg-cyan-500',
-                lightColor: 'bg-cyan-900/30',
-                textColor: 'text-cyan-400',
-                icon: 'maximize2',
-                stimulus: 'NAGŁY OBIEKT',
-                impulse: 'Wdech / Zatrzymanie',
-                behavior: 'STOP / RESET',
-                function: 'ORIENTACJA',
-                intensity: { low: 'Roztargnienie', medium: 'Zaskoczenie', high: 'Szok' },
-                vector: 'STOP / ROZSZERZENIE',
-                desc: 'Nagły reset uwagi ("Biała karta"). Przerwanie działania, by ocenić nowy bodziec.',
-                signals: [
-                    'Gwałtowne otwarcie ust (opadnięcie żuchwy)',
-                    'Wysoko uniesione brwi (zmarszczki na czole)',
-                    'Szeroko otwarte oczy (widoczne białka)',
-                    'Nagły, krótki wdech (gasp)',
-                    'Chwilowe zamarcie w bezruchu (reakcja "freeze")',
-                    'Odruchowe cofnięcie się (krok w tył)',
-                    'Podniesienie dłoni do ust lub klatki piersiowej',
-                    'Rozluźnienie mięśni po chwili (jeśli brak zagrożenia)'
-                ]
-            }
-        ];
-
         // Komponent: Łańcuch Ewolucyjny
-        const EvoChain = ({ emotion }) => (
+        const EvoChain = ({ emotion, t }) => (
             <div className="flex flex-col md:flex-row items-center justify-between gap-2 p-4 bg-slate-900/50 rounded-xl border border-slate-700 mb-6">
                 <div className="text-center flex-1">
-                    <span className="text-[10px] uppercase tracking-widest text-slate-500">Bodziec (Świat)</span>
+                    <span className="text-[10px] uppercase tracking-widest text-slate-500">{t.stimulus}</span>
                     <p className="font-bold text-slate-300 text-sm">{emotion.stimulus}</p>
                 </div>
                 <Icon name="arrowRight" className="text-slate-600 hidden md:block" />
                 <Icon name="arrowDown" className="text-slate-600 md:hidden" />
                 
                 <div className="text-center flex-1 bg-slate-800/30 p-2 rounded border border-slate-700/50">
-                    <span className="text-[10px] uppercase tracking-widest text-teal-500 font-bold">Impuls (Ciało)</span>
+                    <span className="text-[10px] uppercase tracking-widest text-teal-500 font-bold">{t.impulse}</span>
                     <p className="font-serif italic text-slate-200 text-sm mt-1">"{emotion.impulse}"</p>
                 </div>
                 <Icon name="arrowRight" className="text-slate-600 hidden md:block" />
                 <Icon name="arrowDown" className="text-slate-600 md:hidden" />
 
                 <div className={`text-center flex-1 border rounded-lg p-2 ${emotion.lightColor} ${emotion.textColor} border-current`}>
-                    <span className="text-[10px] uppercase tracking-widest opacity-70">Emocja</span>
+                    <span className="text-[10px] uppercase tracking-widest opacity-70">{t.emotion}</span>
                     <p className="font-black text-lg">{emotion.name}</p>
                 </div>
                 <Icon name="arrowRight" className="text-slate-600 hidden md:block" />
                 <Icon name="arrowDown" className="text-slate-600 md:hidden" />
 
                 <div className="text-center flex-1">
-                    <span className="text-[10px] uppercase tracking-widest text-slate-500">Działanie (Instynkt)</span>
+                    <span className="text-[10px] uppercase tracking-widest text-slate-500">{t.action}</span>
                     <p className="font-bold text-white text-sm">{emotion.behavior}</p>
                 </div>
                 <Icon name="arrowRight" className="text-slate-600 hidden md:block" />
                 <Icon name="arrowDown" className="text-slate-600 md:hidden" />
 
                 <div className="text-center flex-1 bg-slate-800 p-2 rounded text-xs">
-                    <span className="text-[9px] uppercase tracking-widest text-slate-500">Cel Biologiczny</span>
+                    <span className="text-[9px] uppercase tracking-widest text-slate-500">{t.bioGoal}</span>
                     <p className="font-bold text-teal-400">{emotion.function}</p>
                 </div>
             </div>
         );
 
         // Komponent: Drabina Intensywności
-        const IntensityLadder = ({ data }) => (
+        const IntensityLadder = ({ data, t }) => (
             <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 relative overflow-hidden">
                 <h3 className="text-xs uppercase tracking-widest text-slate-500 mb-4 flex items-center gap-2">
-                    <Icon name="barChart2" size={14} /> Skala Energii (Intensywność)
+                    <Icon name="barChart2" size={14} /> {t.energyScale}
                 </h3>
                 <div className="space-y-3 relative z-10">
                     <div className="flex items-center justify-between">
-                        <span className="text-xs text-slate-400 w-20">Afekt</span>
+                        <span className="text-xs text-slate-400 w-20">{t.affect}</span>
                         <div className={`flex-1 mx-3 h-2 rounded-full bg-slate-800 overflow-hidden`}>
                             <div className={`h-full ${data.color} w-full opacity-100`}></div>
                         </div>
                         <span className="text-sm font-bold text-white w-32 text-right">{data.intensity.high}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                        <span className="text-xs text-slate-400 w-20">Emocja</span>
+                        <span className="text-xs text-slate-400 w-20">{t.emotion}</span>
                         <div className={`flex-1 mx-3 h-2 rounded-full bg-slate-800 overflow-hidden`}>
                             <div className={`h-full ${data.color} w-2/3 opacity-70`}></div>
                         </div>
                         <span className="text-sm font-medium text-slate-200 w-32 text-right">{data.intensity.medium}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                        <span className="text-xs text-slate-400 w-20">Sygnał</span>
+                        <span className="text-xs text-slate-400 w-20">{t.signal}</span>
                         <div className={`flex-1 mx-3 h-2 rounded-full bg-slate-800 overflow-hidden`}>
                             <div className={`h-full ${data.color} w-1/3 opacity-40`}></div>
                         </div>
@@ -344,7 +567,7 @@
             </div>
         );
 
-        const EmotionCard = ({ data, onClick }) => (
+        const EmotionCard = ({ data, onClick, t }) => (
             <div 
                 onClick={() => onClick(data)}
                 className="card-hover cursor-pointer bg-slate-800 border border-slate-700 rounded-xl p-5 hover:border-slate-500 transition-all relative overflow-hidden group h-full flex flex-col justify-between"
@@ -365,46 +588,36 @@
                 <div className="mt-4 pt-4 border-t border-slate-700/50">
                     <div className="flex items-center gap-2 text-xs text-slate-300">
                         <Icon name="move" size={14} />
-                        <span className="uppercase tracking-wide font-bold">Wektor: {data.vector}</span>
+                        <span className="uppercase tracking-wide font-bold">{t.vector}: {data.vector}</span>
                     </div>
                 </div>
             </div>
         );
 
-        const Modal = ({ data, onClose }) => {
+        const Modal = ({ data, onClose, t }) => {
             if (!data) return null;
             return (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-sm animate-fade" onClick={onClose}>
                     <div className="bg-slate-900 rounded-2xl max-w-5xl w-full max-h-[95vh] overflow-y-auto border border-slate-700 shadow-2xl animate-slide" onClick={e => e.stopPropagation()}>
                         
-                        {/* ZMODYFIKOWANY HEADER (RWD FIX):
-                            1. flex items-center justify-between: Ustawia elementy obok siebie
-                            2. gap-4: Zapewnia odstęp między tekstem a przyciskiem
-                            3. flex-1 min-w-0: KLUCZOWE - pozwala tekstowi się kurczyć zamiast rozpychać ekran
-                        */}
                         <div className={`p-6 md:p-8 ${data.lightColor} border-b border-slate-700 flex items-center justify-between gap-4 sticky top-0 backdrop-blur-md z-20`}>
                             
-                            {/* Kontener Tekstu: flex-1 pozwala mu zająć dostępne miejsce, ale nie więcej */}
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-3 mb-1">
                                     <Icon name={data.icon} size={24} className={`${data.textColor} shrink-0`} />
-                                    {/* break-words: Zapewnia, że długie słowa przełamią się, zamiast przesuwać ekran */}
-                                    {/* text-2xl md:text-4xl: Mniejszy tekst na mobile, duży na PC */}
                                     <h2 className={`text-2xl md:text-4xl font-black ${data.textColor} break-words`}>
                                         {data.name}
                                     </h2>
                                 </div>
-                                {/* hidden md:block: Na bardzo małych ekranach ukrywamy subtitle, żeby oszczędzić miejsce, lub truncate */}
                                 <p className="text-slate-200 font-serif italic text-xs md:text-base truncate">
-                                    Funkcja: <strong>{data.function}</strong>
+                                    {t.function}: <strong>{data.function}</strong>
                                 </p>
                             </div>
                             
-                            {/* PRZYCISK: shrink-0 zapobiega jego zgniataniu. Układ RWD tekstu wewnątrz */}
                             <button 
                                 onClick={onClose} 
                                 className="shrink-0 group flex items-center gap-2 px-3 py-3 md:px-6 bg-slate-950/80 hover:bg-slate-800 text-white rounded-xl border border-slate-600 hover:border-white transition-all shadow-xl"
-                                aria-label="Wróć do listy"
+                                aria-label={t.back}
                             >
                                 <svg 
                                     xmlns="http://www.w3.org/2000/svg" 
@@ -421,34 +634,33 @@
                                     <line x1="19" y1="12" x2="5" y2="12"></line>
                                     <polyline points="12 19 5 12 12 5"></polyline>
                                 </svg>
-                                {/* hidden md:inline: Ukrywa tekst 'WRÓĆ' na mobile, zostawia samą ikonę */}
-                                <span className="hidden md:inline font-bold text-xs tracking-widest uppercase text-white">Wróć</span>
+                                <span className="hidden md:inline font-bold text-xs tracking-widest uppercase text-white">{t.back}</span>
                             </button>
                         </div>
 
                         <div className="p-6 md:p-8 space-y-8">
                             {/* 1. Łańcuch Ewolucyjny */}
                             <section>
-                                <h3 className="text-sm font-bold uppercase text-slate-500 mb-4 tracking-widest">Mechanizm Powstawania (Teoria Plutchika & Jamesa-Langego)</h3>
-                                <EvoChain emotion={data} />
+                                <h3 className="text-sm font-bold uppercase text-slate-500 mb-4 tracking-widest">{t.mechanism}</h3>
+                                <EvoChain emotion={data} t={t} />
                                 <p className="text-xs text-slate-500 text-center italic mt-2">
-                                    *Neurocepcja: Ciało reaguje na bodziec (impuls) szybciej niż umysł nada mu nazwę (emocja).
+                                    {t.neuroception}
                                 </p>
                             </section>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 {/* 2. Intensywność i Ciało */}
                                 <div className="space-y-6">
-                                    <IntensityLadder data={data} />
+                                    <IntensityLadder data={data} t={t} />
                                     
                                     <div className="glass-panel p-6 rounded-xl">
                                         <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                                            <Icon name="activity" size={18} className="text-blue-400"/> Motoryka
+                                            <Icon name="activity" size={18} className="text-blue-400"/> {t.motorics}
                                         </h3>
                                         <ul className="space-y-2 text-sm text-slate-300">
                                             <li className="flex gap-3 items-start">
                                                 <span className="text-blue-500 font-bold">→</span>
-                                                <span>Wektor ruchu: <strong className="text-white">{data.vector}</strong></span>
+                                                <span>{t.movementVector}: <strong className="text-white">{data.vector}</strong></span>
                                             </li>
                                             <li className="pt-2 border-t border-slate-700/50 italic">"{data.behavior}"</li>
                                         </ul>
@@ -459,10 +671,10 @@
                                 <div className="space-y-6">
                                     <div className="bg-slate-800 p-6 rounded-xl border border-slate-700 h-full">
                                         <h3 className="text-lg font-bold text-teal-400 mb-4 flex items-center gap-2">
-                                            <Icon name="fingerprint" size={20} /> Słownik Ciała (Sygnały Somatyczne)
+                                            <Icon name="fingerprint" size={20} /> {t.bodyDictionary}
                                         </h3>
                                         <p className="text-xs text-slate-400 mb-4">
-                                            Zewnętrzne i wewnętrzne objawy fizjologiczne. Skorzystaj z nich, by zbudować wiarygodną reakcję postaci.
+                                            {t.bodyDictDesc}
                                         </p>
                                         <ul className="space-y-3">
                                             {data.signals.map((signal, idx) => (
@@ -478,19 +690,19 @@
 
                              {/* 4. Perspektywa Aktora */}
                              <div className="p-6 rounded-xl border border-dashed border-slate-600 bg-slate-900/50">
-                                <h3 className="text-sm font-bold uppercase text-slate-500 mb-2 tracking-widest">Perspektywa Aktora</h3>
+                                <h3 className="text-sm font-bold uppercase text-slate-500 mb-2 tracking-widest">{t.actorPerspective}</h3>
                                 <div className="flex flex-col md:flex-row gap-6 text-sm">
                                     <div className="flex-1">
-                                        <span className="text-slate-500 text-xs">Sygnał z ciała (Co czuję?)</span>
+                                        <span className="text-slate-500 text-xs">{t.bodySignal}</span>
                                         <p className="text-lg font-serif italic text-slate-200 mt-1">"{data.impulse}"</p>
                                     </div>
                                     <div className="flex-1">
-                                        <span className="text-slate-500 text-xs">Cel sceniczny (Zadanie)</span>
+                                        <span className="text-slate-500 text-xs">{t.scenicGoal}</span>
                                         <p className="text-slate-300 mt-1">{data.desc}</p>
                                     </div>
                                     <div className="flex-1 border-l border-slate-700 pl-6 flex items-center">
                                         <p className="text-slate-400 text-xs italic">
-                                            Pamiętaj: Ciało nie kłamie. Zagraj impuls (napięcie/rozluźnienie), a emocja pojawi się sama.
+                                            {t.remember}
                                         </p>
                                     </div>
                                 </div>
@@ -502,27 +714,41 @@
             );
         };
 
+        const LanguageSwitcher = ({ lang, setLang }) => (
+            <button
+                onClick={() => setLang(lang === 'pl' ? 'en' : 'pl')}
+                className="absolute top-6 right-6 z-50 flex items-center gap-2 px-3 py-2 bg-slate-800/80 text-white rounded-lg border border-slate-600 hover:bg-slate-700 transition-all font-bold text-xs"
+            >
+                <span className={lang === 'pl' ? 'text-white' : 'text-slate-500'}>PL</span>
+                <span className="text-slate-600">|</span>
+                <span className={lang === 'en' ? 'text-white' : 'text-slate-500'}>EN</span>
+            </button>
+        );
+
         const MainView = () => {
             const [selectedEmotion, setSelectedEmotion] = useState(null);
+            const [lang, setLang] = useState('pl');
+
+            const t = translations[lang];
+            const emotionsData = useMemo(() => getEmotionsData(lang), [lang]);
 
             return (
-                <div className="min-h-screen pb-20 bg-[#0f172a]">
+                <div className="min-h-screen pb-20 bg-[#0f172a] relative">
+                    <LanguageSwitcher lang={lang} setLang={setLang} />
+
                     {/* Hero */}
                     <header className="py-20 px-6 text-center bg-gradient-to-b from-slate-900 to-[#0f172a] border-b border-slate-800">
                         <h1 className="text-4xl md:text-6xl font-black tracking-tighter mb-4 text-white">
-                            KOMPENDIUM EMOCJI
+                            {t.title}
                         </h1>
                         <p className="text-lg text-slate-400 font-serif italic max-w-2xl mx-auto mb-8">
-                            "Emocje nie są stanami ducha. Są ewolucyjnymi programami przetrwania."
-                            <br/><span className="text-sm not-italic text-slate-600 uppercase tracking-widest font-bold mt-2 block">- Robert Plutchik -</span>
+                            {t.quote}
+                            <br/><span className="text-sm not-italic text-slate-600 uppercase tracking-widest font-bold mt-2 block">{t.quoteAuthor}</span>
                         </p>
                         
                         <div className="max-w-3xl mx-auto bg-slate-800/50 p-6 rounded-xl border border-slate-700 text-left">
-                            <h4 className="text-sm font-bold text-teal-400 uppercase tracking-widest mb-2">Dlaczego to narzędzie dla aktora?</h4>
-                            <p className="text-sm text-slate-300 leading-relaxed">
-                                Aktorstwo to działanie. Plutchik udowadnia, że każda emocja ma <strong>cel biologiczny</strong> (np. zniszczyć przeszkodę, uciec przed zagrożeniem).
-                                Zamiast "grać nastrój", użyj tego kompendium, aby zrozumieć <strong>zadanie (impuls)</strong>, jakie Twoja postać musi wykonać instynktownie.
-                            </p>
+                            <h4 className="text-sm font-bold text-teal-400 uppercase tracking-widest mb-2">{t.whyTool}</h4>
+                            <p className="text-sm text-slate-300 leading-relaxed" dangerouslySetInnerHTML={{ __html: t.whyToolDesc }}></p>
                         </div>
                     </header>
 
@@ -530,7 +756,7 @@
                     <main className="container mx-auto px-6 py-12">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-slide">
                             {emotionsData.map(emotion => (
-                                <EmotionCard key={emotion.id} data={emotion} onClick={setSelectedEmotion} />
+                                <EmotionCard key={emotion.id} data={emotion} onClick={setSelectedEmotion} t={t} />
                             ))}
                         </div>
                     </main>
@@ -538,49 +764,49 @@
                     {/* Footer - Legenda Funkcji */}
                     <section className="container mx-auto px-6 pb-20">
                         <div className="border-t border-slate-800 pt-10">
-                            <h3 className="text-center text-xl font-bold text-white mb-8">8 Podstawowych Zadań Przetrwania</h3>
+                            <h3 className="text-center text-xl font-bold text-white mb-8">{t.survivalTasks}</h3>
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs text-slate-400 text-center">
                                 <div className="p-3 bg-slate-900 rounded">
-                                    <strong className="text-emerald-500 block mb-1">OCHRONA</strong>
-                                    (Strach)
+                                    <strong className="text-emerald-500 block mb-1">{t.protection}</strong>
+                                    ({emotionsData.find(e => e.id === 'fear').name})
                                 </div>
                                 <div className="p-3 bg-slate-900 rounded">
-                                    <strong className="text-red-500 block mb-1">DESTRUKCJA</strong>
-                                    (Gniew)
+                                    <strong className="text-red-500 block mb-1">{t.destruction}</strong>
+                                    ({emotionsData.find(e => e.id === 'anger').name})
                                 </div>
                                 <div className="p-3 bg-slate-900 rounded">
-                                    <strong className="text-yellow-500 block mb-1">ZALOTY</strong>
-                                    (Radość)
+                                    <strong className="text-yellow-500 block mb-1">{t.courtship}</strong>
+                                    ({emotionsData.find(e => e.id === 'joy').name})
                                 </div>
                                 <div className="p-3 bg-slate-900 rounded">
-                                    <strong className="text-blue-500 block mb-1">REINTEGRACJA</strong>
-                                    (Smutek)
+                                    <strong className="text-blue-500 block mb-1">{t.reintegration}</strong>
+                                    ({emotionsData.find(e => e.id === 'sadness').name})
                                 </div>
                                 <div className="p-3 bg-slate-900 rounded">
-                                    <strong className="text-lime-500 block mb-1">INTYMNOŚĆ</strong>
-                                    (Akceptacja)
+                                    <strong className="text-lime-500 block mb-1">{t.intimacy}</strong>
+                                    ({emotionsData.find(e => e.id === 'trust').name})
                                 </div>
                                 <div className="p-3 bg-slate-900 rounded">
-                                    <strong className="text-purple-500 block mb-1">ODRZUCENIE</strong>
-                                    (Wstręt)
+                                    <strong className="text-purple-500 block mb-1">{t.rejection}</strong>
+                                    ({emotionsData.find(e => e.id === 'disgust').name})
                                 </div>
                                 <div className="p-3 bg-slate-900 rounded">
-                                    <strong className="text-orange-500 block mb-1">EKSPLORACJA</strong>
-                                    (Oczekiwanie)
+                                    <strong className="text-orange-500 block mb-1">{t.exploration}</strong>
+                                    ({emotionsData.find(e => e.id === 'anticipation').name})
                                 </div>
                                 <div className="p-3 bg-slate-900 rounded">
-                                    <strong className="text-cyan-500 block mb-1">ORIENTACJA</strong>
-                                    (Zaskoczenie)
+                                    <strong className="text-cyan-500 block mb-1">{t.orientation}</strong>
+                                    ({emotionsData.find(e => e.id === 'surprise').name})
                                 </div>
                             </div>
                         </div>
                     </section>
 
                     <footer className="text-center py-8 text-slate-500 text-sm">
-                        <p>© 2025 Oskar Hamerski</p>
+                        <p>{t.footer}</p>
                     </footer>
 
-                    <Modal data={selectedEmotion} onClose={() => setSelectedEmotion(null)} />
+                    <Modal data={selectedEmotion} onClose={() => setSelectedEmotion(null)} t={t} />
                 </div>
             );
         };
@@ -590,4 +816,3 @@
     </script>
 </body>
 </html>
-
